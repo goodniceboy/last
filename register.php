@@ -1,3 +1,47 @@
+<?php
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // 데이터베이스 연결
+    $servername = "217ff1e4-befa-4dc1-a67b-119b808c547d.internal.kr1.mysql.rds.nhncloudservice.com";
+    $username = "qwer"; // MySQL 사용자명
+    $password = "qwer"; // MySQL 비밀번호
+    $dbname = "ticket";
+
+    // 연결 생성
+    $conn = new mysqli($servername, $username, $password, $dbname);
+
+    // 연결 확인
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    // 폼 데이터 가져오기
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+
+    // SQL 쿼리
+    $sql = "INSERT INTO users (name, username, password) VALUES (?, ?, ?)";
+
+    // Prepare and bind
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $name, $email, $password);
+
+    // Execute the statement
+    if ($stmt->execute()) {
+        // 회원가입 성공 시 리디렉션
+        header("Location: login.php");
+        exit();
+    } else {
+        // 회원가입 실패 시 에러 메시지 출력
+        echo "<div class='alert alert-danger mt-4'>Error: " . $sql . "<br>" . $conn->error . "</div>";
+    }
+
+    // Close connection
+    $stmt->close();
+    $conn->close();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,50 +110,6 @@
                                     이미 계정이 있으신가요? <a href="login.php">로그인</a>
                                 </div>
                             </form>
-
-                            <?php
-                            if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                                // 데이터베이스 연결
-                                $servername = "217ff1e4-befa-4dc1-a67b-119b808c547d.internal.kr1.mysql.rds.nhncloudservice.com";
-                                $username = "qwer"; // MySQL 사용자명
-                                $password = "qwer"; // MySQL 비밀번호
-                                $dbname = "ticket";
-
-                                // 연결 생성
-                                $conn = new mysqli($servername, $username, $password, $dbname);
-
-                                // 연결 확인
-                                if ($conn->connect_error) {
-                                    die("Connection failed: " . $conn->connect_error);
-                                }
-
-                                // 폼 데이터 가져오기
-                                $name = $_POST['name'];
-                                $email = $_POST['email'];
-                                $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-
-                                // SQL 쿼리
-                                $sql = "INSERT INTO users (name, username, password) VALUES (?, ?, ?)";
-
-                                // Prepare and bind
-                                $stmt = $conn->prepare($sql);
-                                $stmt->bind_param("sss", $name, $email, $password);
-
-                                // Execute the statement
-                                if ($stmt->execute()) {
-                                    // 회원가입 성공 시 리디렉션
-                                    header("Location: login.php");
-                                    exit();
-                                } else {
-                                    // 회원가입 실패 시 에러 메시지 출력
-                                    echo "<div class='alert alert-danger mt-4'>Error: " . $sql . "<br>" . $conn->error . "</div>";
-                                }
-
-                                // Close connection
-                                $stmt->close();
-                                $conn->close();
-                            }
-                            ?>
                         </div>
                     </div>
                     <div class="footer">
