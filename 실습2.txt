@@ -1,0 +1,195 @@
+1. 인스턴스 설치
+
+- 조직
+- project : cbnu-nks
+
+- 인스턴스 생성
+Compute > Instance > 인스턴스 생성
+이미지 : OS > Ubuntu > Ubuntu Server 22.04 LTS
+가용성 영역 : 임의의 가용성영역
+인스턴스 이름 : control-server
+인스턴스 타입 : t2.c1.m1
+키페어 : 생성 > 다운로드
+블록스토리지 : 기본 크기로 지정
+네트워크 : Default Network
+플로팅 IP : 설정변경 클릭 > 사용으로 변경
+보안그룹 : default
+사용자 스크립트 : 설정 변경 클릭 후 스크립트 내용 붙여넣기
+               #include https://kr2-api-object-storage.nhncloudservice.com/v1/AUTH_f255bb1eb39c492f97c4567bfbbd7b78/nkb-edu-real/nkb_instance-script.txt
+
+- 보안 그룹
+Network > Security Group> default 보안그룹 클릭 후 포트 추가 작업 
+보안 규칙 생성 - TCP 포트범위 & 내IP 
+
+- 부라우저에서 
+  http://133.186.219.253:8888/
+  비번: nhn1234
+
+-------------------------------------------------------------------------------
+2. Docker
+
+# docker version
+# docker system info
+# docker pull nginx
+# docker images 
+
+# docker run --name webserver -d -p 80:80 nginx
+# docker ps
+
+브라우저에서 http://133.186.219.253/
+
+# docker exec -it webserver /bin/bash
+
+Webserver 컨테이너에서 필요한 패키지 설치
+# apt-get update
+# apt-get install -y vim
+
+Nginx의 index.html 파일을 수정 후 결과를 직접 확인해봅니다.
+# cd /usr/share/nginx/html
+# vi index.html
+  Welcome to CBNU!!!~
+
+브라우저에서 변경된 사항 확인 http://133.186.219.253/
+
+
+docker logs 명령어
+# docekr logs 컨테이너 이름[webserver]
+
+
+--------------------------------------------------------------
+3. NKS 생성 : NHN Cloud Kubernetes Service 생성
+
+- Container > NKS 클릭 후 [클러스터생성]
+클러스터이름 : nks-cbnu
+Kubernetes버전 : v1.26.3
+나머지 기본 설정으로 진행 
+
+- 기본 노드 그룹
+이미지 : Ubuntu Server 20.04 LTS
+가용성 영역 : 임의의 가용성 영역
+인스턴스 타입 : m2.c2m4
+노드수 : 2
+키페어: 개인이 가지고 있는 pem key
+블록스토리지 타입및 크기 : HDD & 100G
+오토스케일러 및 사용자 스크립트는 사용안함
+클러스터 생성 클릭
+
+-----------------------------------------------------------------------
+4. 클러스터와 통신 설정
+
+- Kubectl & 클러스터와 통신 설정
+* kubectl은 쿠버네티스 클러스터와 통신하기 위해 설정 파일을 사용하는데, 
+이 설정 파일의 기본 경로는 ~/.kube/config으로 NKS에서 제공하는 파일로 대체.
+
+* Console 접속 후 [Container > NKS] 클릭 후 kubeconfig 파일 다운로드
+* 다운받아 온 kubeconfig 파일을 업로드하고 cd ~/notebook 명령어로 디렉토리 이동 후 ls 명령어로 서버에 업로드 되었는지 확인
+# mkdir ~/.kube
+# cp xxxx.yaml ~/.kube/config
+
+* kubectl 명령어로 노드와 통신이 정상적으로 되는지 확인
+# kubectl get nodes
+
+
+- pod 생성 후 kubectl 명령어 연습
+* Pod 생성
+# mkidr nks
+# cd nks
+# pwd
+
+* pod.yaml 파일 작성
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: web-app
+    labels:
+      app: web-simple
+  spec:
+    containers:
+      - name: web-server
+        image: nginx:latest
+        ports:
+          - containerPort: 80
+
+* kubuctl의 명령어로 pod 배포
+# kubectl apply -f <pod.yaml>
+
+* Pod 생성을 확인하고 관련 정보를 조회
+# kubectl get pods
+# kubectl get pods -o wide
+# kubectl get pods --output wide
+# kubectl describe pod <pod-name>
+# kubectl logs <pod-name>
+# kubectl -it exec <pod-name> -- <command>
+
+* 배포된 pod의 정보 확인
+# kubectl describe pod web-app
+
+- 1개의 pod 안에 2개의 컨테이너 실행
+* zip파일을 다운로드 받아 lab4 디렉토리로 이동하여 2ctinpod.yaml 배포하여 pods를 생성
+# wget https://kr2-api-object-storage.nhncloudservice.com/v1/AUTH_f255bb1eb39c492f97c4567bfbbd7b78/nkb-edu-real/example_v8.zip
+# unzip example_v8.zip
+# cd lab4
+# kubectl apply -f <파일 또는 디렉토리 경로>
+
+* Pods를 실행시켜서 pods 상태를 확인
+# kubectl get pods -o wide
+# kubectl describe pod 2container-pod
+
+* mysql 컨테이너를 실행해서 사전에 설정한 root 비밀번호를 입력해서 접속이 가능한지 확인해봅니다.
+  kubectl exec -it <파드 이름> -c <컨테이너 이름> -- /bin/bash
+# kubectl exec -it 2container-pod -c database -- /bin/bash
+# mysql –u root –p
+
+* Pod 내의 컨테이너들은 같은 IP 주소와 포트 공간을 공유하고, localhost를 통해 서로 통신 가능.
+  따라서 database 컨테이너에서 web-server를 localhost로 통신 시도.
+mysql> exit
+sh-4.4# curl localhost
+
+-------------------------------------------------------------------------
+5. Relicaset & Deployment
+
+- Relicaset
+* lab5 디렉터리로 이동 후 replicaset.yaml 파일을 적용하여 resplicaset을 생성.
+# kubectl apply –f replicaset.yaml
+
+* 실행한 replicaset을 다음 명령어로 확인
+# kubectl get rs,pods
+* 아래 명령어로 --show-labels 옵션을 넣어주면 pod들의 라벨링도 같이 표시
+# kubectl get pods -o wide --show-labels
+
+* replicaset.yaml 파일에서 replicas 값을 변경하여 ReplicaSet을 업데이트.
+  replicas: 3 --> 5 로 수정
+
+* kubectl apply –f replicaset.yaml 적용하기 전에 pods 변화를 확인하기 위해서 -w 옵션을 걸어두고 적용.
+# kubectl get pods –w 또는 kubectl get pods –watch 
+# kubectl apply -f relicaset.yaml
+
+* 위의 과정을 진행했다면 replicaset을 삭제.
+# kubectl delete replicaset nginx-replicaset
+
+
+-  Deployment 
+* kubectl apply –f deployment.yaml 적용하고 describe 명령어로 deployment 설정 확인.
+# kubectl apply –f deployment.yaml
+# kubectl describe deployment nginx-deployment
+
+* Pods를 모니터링 하면서 nginx 버전을 변경하여 롤링 업데이트가 진행될 수 있도록 업데이트. 
+  yaml 파일에서 nginx 버전을 1.24.0 버전으로 업데이트.
+# kubectl apply –f deployment.yaml
+# kubectl get pods –w
+
+* Describe 명령어를 이용하여 업데이트된 deployment 상세 내용을 파악.
+# kubectl describe deployment nginx-deployment
+
+* deployment의 배포 이력을 다음 명령어로 확인.
+# kubectl rollout history deployment <dploy name>
+
+* revision 플래그를 사용하면 상세하게 확인 가능
+# kubectl rollout history deployment <dploy name> --revision=2
+
+* 최근의 업데이트를 되돌리는 롤백 명령을 사용하여 이전 상태로 롤백 해보고 상태 확인.
+# kubectl rollout undo deployment <depoyment 이름>
+
+* 다시 한번 deployment 상세 내용을 확인하여 latest로 롤백되었는지 확인.
+# kubectl describe deployment nginx-deployment
+# kubectl describe deployments.apps nginx-deployment
