@@ -72,7 +72,6 @@ $conn->close();
             <div class="row justify-content-md-center h-100">
                 <div class="card-wrapper">
                     <div class="brand">
-                        <a href="index.php" class="logo">
                             <img src="assets/images/intra.PNG" alt="logo">
                     </div>
                     <div class="card fat">
