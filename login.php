@@ -2,9 +2,9 @@
 session_start(); // 세션 시작
 
 // 데이터베이스 연결
-$servername = "localhost";
-$username = "root"; // MySQL 사용자명
-$password = "1234"; // MySQL 비밀번호
+$servername = "217ff1e4-befa-4dc1-a67b-119b808c547d.internal.kr1.mysql.rds.nhncloudservice.com";
+$username = "qwer"; // MySQL 사용자명
+$password = "qwer"; // MySQL 비밀번호
 $dbname = "ticket";
 
 // 연결 생성
