@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test XSS</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        width: 80%;
+        margin: 0 auto;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Test XSS Attack</h1>
+      <form action="" method="GET">
+        <label for="input">Enter something:</label>
+        <input type="text" id="input" name="input" required />
+        <button type="submit">Submit</button>
+      </form>
+      <div class="result">
+        <!-- Display user input if provided -->
+        <p>
+          입력한 내용:
+          <!-- Simple script to output user input -->
+          <script>
+            // Get the query string from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            // Extract the input value from the query string
+            const input = urlParams.get("input");
+            // Display the input if it exists
+            if (input) {
+              document.write(input);
+            }
+          </script>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
