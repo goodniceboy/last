@@ -2,9 +2,9 @@
 session_start(); // 세션 시작
 
 // 데이터베이스 연결
-$servername = "217ff1e4-befa-4dc1-a67b-119b808c547d.internal.kr1.mysql.rds.nhncloudservice.com";
-$username = "qwer"; // MySQL 사용자명
-$password = "qwer"; // MySQL 비밀번호
+$servername = "localhost";
+$username = "root"; // MySQL 사용자명
+$password = "1234"; // MySQL 비밀번호
 $dbname = "ticket";
 
 // 연결 생성
@@ -87,12 +87,12 @@ $conn->close();
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="password">비밀번호
-                                        <a href="forgot.html" class="float-right">
-                                            비밀번호 찾기
-                                        </a>
-                                    </label>
+                                    <label for="password">비밀번호</label>
                                     <input id="password" type="password" class="form-control" name="password" required data-eye>
+                                    <a href="forgot.html" class="float-right">
+                                        비밀번호 찾기
+                                    </a>
+                                    </br>
                                     <div class="invalid-feedback">
                                         Password is required
                                     </div>
