@@ -293,7 +293,7 @@ $user_name = $is_logged_in ? $_SESSION['user_name'] : '';
                     <div class="under-footer">
                         <div class="row">
                             <div class="col-lg-6 col-sm-6">
-                                <p>intrapark</p>
+                                <p>ticket</p>
                             </div>
                             <div class="col-lg-6 col-sm-6">
                                 <p class="copyright">
